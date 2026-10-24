@@ -168,6 +168,7 @@
       line-height: 1.1;
     }
 
+    /* ---------- UPDATED SUBHEAD (Charo taraf border) ---------- */
     .subhead {
       font-size: 0.88rem;
       color: #5b3b9e;
@@ -178,8 +179,16 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      border-left: 5px solid #6a3de8;
+      border: 2px solid #6a3de8; /* Charo taraf border */
       font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .subhead:hover {
+      border: 2.5px solid #4819d6; /* Hover par bold border */
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px -10px rgba(106, 61, 232, 0.3);
+      background: rgba(237, 228, 255, 0.9);
     }
 
     .subhead i { color: #6a3de8; }
