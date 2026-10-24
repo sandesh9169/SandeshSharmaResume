@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Sandesh Sharma · Resume & Profile</title>
+  <title>Sandesh Sharma · Profile & Resume</title>
 
   
   <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
@@ -345,7 +345,7 @@
       50% { border-color: transparent; }
     }
 
-    /* ---------- UPDATED PARAGRAPH ---------- */
+    /* ---------- UPDATED PARAGRAPH (Charo taraf border) ---------- */
     .home-content p {
       color: #5b3b9e;
       line-height: 1.7;
@@ -354,17 +354,17 @@
       background: rgba(237, 228, 255, 0.5);
       padding: 1.2rem 1.6rem;
       border-radius: 28px 12px 28px 12px;
-      border: 2px solid #6a3de8; /* Charo taraf border add kiya */
+      border: 2px solid #6a3de8; /* Charo taraf border */
       backdrop-filter: blur(4px);
       box-shadow: 0 8px 20px -10px rgba(106, 61, 232, 0.2);
-      transition: all 0.3s ease; /* Smooth transition */
+      transition: all 0.3s ease;
     }
 
     .home-content p:hover {
-      border: 2.5px solid #4819d6; /* Hover par border bold hoga */
+      border: 2.5px solid #4819d6; /* Hover par bold border */
       background: rgba(237, 228, 255, 0.85);
       box-shadow: 0 12px 25px -5px rgba(106, 61, 232, 0.3);
-      transform: scale(1.02); /* Box halka sa bada hoga */
+      transform: scale(1.02);
     }
 
     /* ---------- SOCIAL ICONS ---------- */
@@ -465,7 +465,7 @@
       50% { transform: scale(1.15); }
     }
 
-    /* ---------- RESPONSIVE ---------- */
+    /* ---------- RESPONSIVE (Mobile View) ---------- */
     @media (max-width: 880px) {
       .glass-card {
         padding: 1.6rem 1.4rem;
@@ -506,11 +506,18 @@
         font-size: 1rem;
       }
 
+      /* --- Mobile Order Changes --- */
       .home {
-        flex-direction: column-reverse;
+        flex-direction: column; /* Sab kuch ek ke niche ek */
         text-align: center;
-        gap: 2rem;
+        gap: 1.5rem;
       }
+
+      .home-img {
+        order: -1; /* Photo sabse upar */
+        margin-bottom: 0.5rem;
+      }
+      /* --------------------------- */
 
       .home-img img {
         max-width: 260px;
