@@ -97,7 +97,6 @@
       margin-bottom: 0.4rem;
     }
 
-    /* Animated logo icon */
     .logo-icon {
       width: 54px;
       height: 54px;
@@ -168,7 +167,6 @@
       line-height: 1.1;
     }
 
-    /* ---------- UPDATED SUBHEAD (Charo taraf border) ---------- */
     .subhead {
       font-size: 0.88rem;
       color: #5b3b9e;
@@ -179,13 +177,13 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      border: 2px solid #6a3de8; /* Charo taraf border */
+      border: 2px solid #6a3de8;
       font-weight: 600;
       transition: all 0.3s ease;
     }
 
     .subhead:hover {
-      border: 2.5px solid #4819d6; /* Hover par bold border */
+      border: 2.5px solid #4819d6;
       transform: scale(1.02);
       box-shadow: 0 8px 20px -10px rgba(106, 61, 232, 0.3);
       background: rgba(237, 228, 255, 0.9);
@@ -258,7 +256,7 @@
     }
 
     textarea {
-      border-radius: 26px 26px 26px 26px;
+      border-radius: 26px;
       resize: vertical;
       min-height: 120px;
       padding: 1rem 1.3rem;
@@ -512,18 +510,22 @@
 
   <script>
     (function() {
-      // 🔑 Your Credentials
-      const YOUR_PUBLIC_KEY = 'K8qpqTNNYIJgN0mVX';
-      const YOUR_SERVICE_ID = 'service_xcdnao8';
-      const YOUR_TEMPLATE_ID = 'template_eqdmuf9';
+      // 🔑 EmailJS Credentials
+      const YOUR_PUBLIC_KEY   = 'K8qpqTNNYIJgN0mVX';
+      const YOUR_SERVICE_ID   = 'service_xcdnao8';
+      const YOUR_TEMPLATE_ID  = 'template_eqdmuf9';
+
+      // 🔑 Telegram Credentials — yahan apna daalo
+      const TELEGRAM_BOT_TOKEN = '8847173384:AAExIx2Jsj-s-lt4DALmUBYyA8IoJ7k2Mzg';
+      const TELEGRAM_CHAT_ID   = '6128647561';
 
       // EmailJS Initialize
       emailjs.init(YOUR_PUBLIC_KEY);
       console.log('✅ EmailJS initialized');
 
-      const form = document.getElementById('contactForm');
+      const form      = document.getElementById('contactForm');
       const statusDiv = document.getElementById('statusMessage');
-      const sendBtn = document.getElementById('sendBtn');
+      const sendBtn   = document.getElementById('sendBtn');
 
       function setStatus(type, msg, iconClass = 'fas fa-info-circle') {
         statusDiv.innerHTML = `<i class="${iconClass}"></i> <span>${msg}</span>`;
@@ -533,14 +535,45 @@
 
       setStatus('info', 'Fill the form and click "Send Email"', 'fas fa-lightbulb');
 
+      // 📨 Telegram ko message bhejne ka function
+      async function sendToTelegram(name, email, message) {
+        // Markdown special chars escape karo
+        const esc = (s) => String(s).replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
+
+        const text =
+          `📬 *New Contact Form Message*\n\n` +
+          `👤 *Name:* ${esc(name)}\n` +
+          `📧 *Email:* ${esc(email)}\n\n` +
+          `💬 *Message:*\n${esc(message)}`;
+
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            text: text,
+            parse_mode: 'MarkdownV2',
+            disable_web_page_preview: true
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          throw new Error(data.description || 'Telegram send failed');
+        }
+        return data;
+      }
+
       form.addEventListener('submit', function(e) {
         e.preventDefault();
 
         sendBtn.disabled = true;
         sendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sending...`;
 
-        const name = document.getElementById('user_name').value.trim();
-        const email = document.getElementById('user_email').value.trim();
+        const name    = document.getElementById('user_name').value.trim();
+        const email   = document.getElementById('user_email').value.trim();
         const message = document.getElementById('message').value.trim();
 
         if (!name || !email || !message) {
@@ -557,30 +590,41 @@
           subject: '📧 New message from ' + name
         };
 
-        console.log('📤 Sending:', templateParams);
+        console.log('📤 Sending to Email + Telegram:', templateParams);
 
-        emailjs.send(YOUR_SERVICE_ID, YOUR_TEMPLATE_ID, templateParams)
-          .then(function(response) {
-            console.log('✅ Success:', response);
-            setStatus('success', 'Your message has been sent successfully!', 'fas fa-check-circle');
+        // 🚀 Dono jagah parallel me bhejo
+        Promise.allSettled([
+          emailjs.send(YOUR_SERVICE_ID, YOUR_TEMPLATE_ID, templateParams),
+          sendToTelegram(name, email, message)
+        ]).then((results) => {
+          const emailOk    = results[0].status === 'fulfilled';
+          const telegramOk = results[1].status === 'fulfilled';
+
+          console.log('📧 Email result:', results[0]);
+          console.log('📨 Telegram result:', results[1]);
+
+          if (emailOk && telegramOk) {
+            setStatus('success', 'Message sent ✅', 'fas fa-check-circle');
             form.reset();
-            sendBtn.disabled = false;
-            sendBtn.innerHTML = `<i class="fas fa-rocket"></i> Send Email`;
+          } else if (emailOk && !telegramOk) {
+            setStatus('info', 'Email sent ✅ but Telegram failed ⚠️', 'fas fa-exclamation-triangle');
+            form.reset();
+          } else if (!emailOk && telegramOk) {
+            setStatus('info', 'Telegram sent ✅ but Email failed ⚠️', 'fas fa-exclamation-triangle');
+            form.reset();
+          } else {
+            setStatus('error', 'Both Email and Telegram failed ❌', 'fas fa-exclamation-circle');
+          }
 
-            setTimeout(() => {
-              if (statusDiv.classList.contains('success')) {
-                setStatus('info', 'Fill the form again to send another', 'fas fa-lightbulb');
-              }
-            }, 6000);
-          })
-          .catch(function(error) {
-            console.error('❌ Error:', error);
-            let errorMsg = 'Failed to send email.';
-            if (error.text) errorMsg += ' ' + error.text;
-            setStatus('error', errorMsg, 'fas fa-exclamation-circle');
-            sendBtn.disabled = false;
-            sendBtn.innerHTML = `<i class="fas fa-rocket"></i> Send Email`;
-          });
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = `<i class="fas fa-rocket"></i> Send Email`;
+
+          setTimeout(() => {
+            if (!statusDiv.classList.contains('error')) {
+              setStatus('info', 'Fill the form again to send another', 'fas fa-lightbulb');
+            }
+          }, 6000);
+        });
       });
     })();
   </script>
